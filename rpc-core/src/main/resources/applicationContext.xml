@@ -1,0 +1,19 @@
+<beans>
+    <!--    <bean id="rateLimiter" class="DI.model.RateLimiter">-->
+    <!--        <constructor-arg ref="redisCounter"/>-->
+    <!--    </bean>-->
+
+    <!--    <bean id="redisCounter" class="DI.model.RedisCounter">-->
+    <!--        <constructor-arg type="String" value="127.0.0.1"/>-->
+    <!--        <constructor-arg type="int" value="1234"/>-->
+    <!--    </bean>-->
+
+    <bean id="helloService" class="com.bee.rpc.ServerTest.HelloServiceImpl">
+
+    </bean>
+
+    <bean id="SeeYouService" class="com.bee.rpc.ServerTest.SeeYouServiceImpl">
+
+    </bean>
+
+</beans>
