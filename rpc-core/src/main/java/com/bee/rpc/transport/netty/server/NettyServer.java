@@ -53,7 +53,7 @@ public class NettyServer extends AbstractServer {
                         @Override
                         protected void initChannel(NioSocketChannel ch) throws Exception {
                             ChannelPipeline pipeline = ch.pipeline();
-                            pipeline.addLast(new IdleStateHandler(10, 0, 10, TimeUnit.MILLISECONDS));
+                            pipeline.addLast(new IdleStateHandler(10, 0, 0,  TimeUnit.SECONDS));
                             pipeline.addLast(new ProtocolFrameDecoder());
                             pipeline.addLast(new MessageCodec());
                             pipeline.addLast(new NettyServerHandler());

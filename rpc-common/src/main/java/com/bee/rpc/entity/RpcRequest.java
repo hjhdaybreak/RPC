@@ -2,6 +2,7 @@ package com.bee.rpc.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.io.Serializable;
@@ -13,6 +14,7 @@ import java.util.Arrays;
  * @author ziyang
  */
 @Data
+@NoArgsConstructor
 @AllArgsConstructor
 public class RpcRequest implements Serializable {
 
@@ -53,5 +55,8 @@ public class RpcRequest implements Serializable {
      * 调用方法的参数类型
      */
     private Class<?>[] parameterTypes;
-
+    /**
+     * 是否是心跳包
+     */
+    private Boolean heartBeat;
 }

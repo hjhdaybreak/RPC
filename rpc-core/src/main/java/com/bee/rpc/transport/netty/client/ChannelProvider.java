@@ -36,7 +36,7 @@ public class ChannelProvider {
             @Override
             protected void initChannel(NioSocketChannel ch) {
                 ch.pipeline()
-                        .addLast(new IdleStateHandler(0, 10, 1, TimeUnit.MILLISECONDS))
+                        .addLast(new IdleStateHandler(0, 5, 0, TimeUnit.SECONDS))
                         .addLast(new ProtocolFrameDecoder())
                         .addLast(new MessageCodec())
                         .addLast(new NettyClientHandler());
