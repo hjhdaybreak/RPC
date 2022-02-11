@@ -1,4 +1,4 @@
-package com.bee.rpc.transport.netty.client;
+package com.bee.rpc.transport.client;
 
 import com.bee.rpc.codec.MessageCodec;
 import com.bee.rpc.codec.ProtocolFrameDecoder;
@@ -11,7 +11,6 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -26,17 +25,17 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 public class ChannelProvider {
-    private static EventLoopGroup eventLoopGroup;
     private static final int MAX_RETRY_COUNT = 5;
     private static Channel channel = null;
-    private static Bootstrap bootstrap = initializeBootstrap();
+    private static final Bootstrap bootstrap = initializeBootstrap();
+
 
     public static Channel get(InetSocketAddress inetSocketAddress) {
         bootstrap.handler(new ChannelInitializer<NioSocketChannel>() {
             @Override
             protected void initChannel(NioSocketChannel ch) {
                 ch.pipeline()
-                        .addLast(new IdleStateHandler(0, 5, 0, TimeUnit.SECONDS))
+                        .addLast(new IdleStateHandler(0, 10, 0, TimeUnit.MILLISECONDS))
                         .addLast(new ProtocolFrameDecoder())
                         .addLast(new MessageCodec())
                         .addLast(new NettyClientHandler());
@@ -44,7 +43,7 @@ public class ChannelProvider {
         });
         CountDownLatch countDownLatch = new CountDownLatch(1);
         try {
-            connect(bootstrap, inetSocketAddress, countDownLatch);
+            connect(inetSocketAddress, countDownLatch);
             countDownLatch.await();
         } catch (InterruptedException e) {
             log.error("获取channel时有错误发生:", e);
@@ -52,8 +51,8 @@ public class ChannelProvider {
         return channel;
     }
 
-    private static void connect(Bootstrap bootstrap, InetSocketAddress inetSocketAddress, CountDownLatch countDownLatch) {
-        connect(bootstrap, inetSocketAddress, MAX_RETRY_COUNT, countDownLatch);
+    private static void connect(InetSocketAddress inetSocketAddress, CountDownLatch countDownLatch) {
+        connect(ChannelProvider.bootstrap, inetSocketAddress, MAX_RETRY_COUNT, countDownLatch);
     }
 
     private static void connect(Bootstrap bootstrap, InetSocketAddress inetSocketAddress, int retry, CountDownLatch countDownLatch) {
@@ -80,7 +79,7 @@ public class ChannelProvider {
 
     private static Bootstrap initializeBootstrap() {
         Bootstrap bootstrap = new Bootstrap();
-        eventLoopGroup = new NioEventLoopGroup();
+        EventLoopGroup eventLoopGroup = new NioEventLoopGroup();
         bootstrap.group(eventLoopGroup)
                 .channel(NioSocketChannel.class)
                 //连接的超时时间，超过这个时间还是建立不上的话则代表连接失败

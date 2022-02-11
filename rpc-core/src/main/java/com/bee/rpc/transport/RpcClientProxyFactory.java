@@ -14,15 +14,15 @@ import java.lang.reflect.Proxy;
  *
  * @author hjh
  */
-public class RpcClientProxy implements InvocationHandler {
+public class RpcClientProxyFactory implements InvocationHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(RpcClientProxy.class);
+    private static final Logger logger = LoggerFactory.getLogger(RpcClientProxyFactory.class);
 
     private final RpcClient client;
 
     IdGenerator idGenerator = IdGenerator.getInstance();
 
-    public RpcClientProxy(RpcClient client) {
+    public RpcClientProxyFactory(RpcClient client) {
         this.client = client;
     }
 
@@ -36,7 +36,7 @@ public class RpcClientProxy implements InvocationHandler {
         //方法属于的类就是接口         method.getParameterTypes() 根据参数去查找方法
         logger.info("调用方法: {}#{}", method.getDeclaringClass().getName(), method.getName());
         RpcRequest rpcRequest = new RpcRequest(idGenerator.nextId(), method.getDeclaringClass().getName(),
-                method.getName(), args, method.getParameterTypes());
+                method.getName(), method.getParameterTypes(), args, false);
         return client.sendRequest(rpcRequest);
     }
 }

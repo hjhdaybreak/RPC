@@ -26,7 +26,7 @@ public class Watch implements Watcher {
     final String SPILT = "/";
     static AtomicInteger order = new AtomicInteger(1);
     private final ConcurrentHashMap<String, ConcurrentHashMap<String, InetSocketAddress>> cache = ZookeeperServiceRegistry.cache;
-    public  final ConcurrentHashMap<String, ConsistentHashingWithVirtualNode> consistencyMap = ZookeeperServiceRegistry.consistencyMap;
+    public final ConcurrentHashMap<String, ConsistentHashingWithVirtualNode> consistencyMap = ZookeeperServiceRegistry.consistencyMap;
 
     public Watch(ZooKeeper zooKeeper, String monitorPath, String serviceName) {
         this.zooKeeper = zooKeeper;
@@ -76,26 +76,33 @@ public class Watch implements Watcher {
         // 获取当前最新的所有服务
         List<String> children = zooKeeper.getChildren(monitorPath + SPILT + serviceName, null);
         ConsistentHashingWithVirtualNode consistentHashingWithVirtualNode = consistencyMap.get(serviceName);
-        Set<String> set = new HashSet<>(children);
-        ConcurrentHashMap<String, InetSocketAddress> serviceSet = cache.get(serviceName);
-        for (Map.Entry<String, InetSocketAddress> entry : serviceSet.entrySet()) {
-            if (!set.contains(entry.getKey())) {
+        Set<String> newServiceSet = new HashSet<>(children);
+        ConcurrentHashMap<String, InetSocketAddress> oldServiceSet = cache.get(serviceName);
+
+        //遍历原来的服务集合,如果组最新集合不包含,就将其移除
+        for (Map.Entry<String, InetSocketAddress> entry : oldServiceSet.entrySet()) {
+            if (!newServiceSet.contains(entry.getKey())) {
                 consistentHashingWithVirtualNode.removeGroup(entry.getKey());
-                serviceSet.remove(entry.getKey());
+                oldServiceSet.remove(entry.getKey());
             }
         }
 
-        set.removeAll(cache.keySet());  // 求差集
+        newServiceSet.removeAll(cache.keySet());  // 求差集,求多出来的服务
+        
 
-        if (!set.isEmpty()) {
-            for (String path : set) {
+        //添加多出来的服务
+        if (!newServiceSet.isEmpty()) {
+            for (String path : newServiceSet) {
                 String checkedChildrenPath = monitorPath + SPILT + serviceName + SPILT + path;
                 consistentHashingWithVirtualNode.addGroup(path);
                 byte[] serviceIpAndPort = zooKeeper.getData(checkedChildrenPath, null, null);
                 String[] data = new String(serviceIpAndPort).split(":");
-                serviceSet.put(path, new InetSocketAddress(data[0], Integer.parseInt(data[1])));
+                oldServiceSet.put(path, new InetSocketAddress(data[0], Integer.parseInt(data[1])));
             }
-            cache.put(serviceName, serviceSet);
+            //最后刷新一致性hash环
+            consistentHashingWithVirtualNode.refreshHashCircle();
+            //覆盖原来的缓存
+            cache.put(serviceName, oldServiceSet);
         }
     }
 }

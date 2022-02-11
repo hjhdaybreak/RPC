@@ -27,6 +27,7 @@ public class MessageCodec extends ByteToMessageCodec<Object> {
         } else {
             out.writeByte(MessageType.RESPONSE_Message.getCode());
         }
+        //序列化算法编号
         out.writeByte(0);
         byte[] bytes = Serializer.Algorithm.ByJSON.serialize(o);
         out.writeInt(bytes.length);

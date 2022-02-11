@@ -1,7 +1,7 @@
 package com.bee.rpc.ServerTest;
 
 
-import com.bee.rpc.transport.netty.server.NettyServer;
+import com.bee.rpc.transport.server.NettyServer;
 
 /**
  * 测试用 Netty 服务提供者 (服务端)

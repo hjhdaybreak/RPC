@@ -1,4 +1,4 @@
-package com.bee.rpc.transport.netty.server;
+package com.bee.rpc.transport.server;
 
 
 import com.bee.rpc.aop.interceptor.AfterReturnInterceptor;
@@ -25,7 +25,7 @@ import java.util.concurrent.ExecutorService;
 @Slf4j
 public class NettyServerHandler extends SimpleChannelInboundHandler<RpcRequest> {
 
-    private static RequestHandler requestHandler;
+    private static final RequestHandler requestHandler;
     private static final String THREAD_NAME_PREFIX = "netty-server-handler";
     private static final ExecutorService threadPool;
     private static final LeakyBucketLimiter leakyBucketLimiter;
@@ -35,6 +35,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<RpcRequest> 
         threadPool = ThreadPoolFactory.createDefaultThreadPool(THREAD_NAME_PREFIX);
         leakyBucketLimiter = new LeakyBucketLimiter(1);
     }
+
 
     protected void channelRead0(ChannelHandlerContext ctx, RpcRequest msg) {
         // 如果HeartBeat属性为true，那么该消息是心跳包
@@ -52,8 +53,8 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<RpcRequest> 
                         return leakyBucketLimiter.acquire();
                     }
                 };
-                boolean nowAllow = (boolean) beforeInterceptor.before(null, null, null);
-                if (nowAllow) {
+                boolean permit = (boolean) beforeInterceptor.before(null, null, null);
+                if (permit) {
                     result = requestHandler.handle(msg);
                 } else {
                     result = "当前服务器繁忙,请稍后重试!";
@@ -68,15 +69,12 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<RpcRequest> 
                 ChannelFuture future = ctx.writeAndFlush(RpcResponse.success(result, msg.getRequestId()));
                 future.addListener(ChannelFutureListener.CLOSE);
             } catch (Exception e) {
-
                 ExceptionInterceptor exceptionInterceptor = new ExceptionInterceptor() {
                     @Override
                     public void intercept(Object proxy, Method method, Object[] args, Throwable throwable) {
                     }
                 };
                 exceptionInterceptor.intercept(null, null, null, null);
-            } finally {
-                ReferenceCountUtil.release(msg);
             }
         });
     }
@@ -90,7 +88,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<RpcRequest> 
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("关闭了");
+        System.out.println("channel 关闭了");
     }
 
     @Override

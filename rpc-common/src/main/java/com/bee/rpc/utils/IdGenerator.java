@@ -84,7 +84,7 @@ public class IdGenerator {
      */
     private static final IdGenerator instance = new IdGenerator(1, 1);
 
-    public static IdGenerator getInstance(){
+    public static IdGenerator getInstance() {
         return instance;
     }
 

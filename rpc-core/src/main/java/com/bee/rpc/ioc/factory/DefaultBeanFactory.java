@@ -4,17 +4,24 @@ package com.bee.rpc.ioc.factory;
 import com.bee.rpc.ioc.BeanDefinition;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class BeansFactory {
-    private ConcurrentHashMap<String, Object> singletonObjects = new ConcurrentHashMap<>();
-    private ConcurrentHashMap<String, BeanDefinition> beanDefinitions = new ConcurrentHashMap<>();
-
+/**
+ * 1.提供获取 Bean 对象的方法
+ * 2.根据 beanDefinitions 创建对象
+ */
+public class DefaultBeanFactory implements BeanFactory {
+    private final ConcurrentHashMap<String, Object> singletonObjects = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, BeanDefinition> beanDefinitions = new ConcurrentHashMap<>();
+    private final List<String> beanDefinitionsName = new ArrayList<>();
 
     public void addBeanDefinitions(List<BeanDefinition> beanDefinitions) {
         for (BeanDefinition beanDefinition : beanDefinitions) {
             this.beanDefinitions.putIfAbsent(beanDefinition.getId(), beanDefinition);
+            beanDefinitionsName.add(beanDefinition.getId());
         }
         //单例并且没有延迟初始化
         for (BeanDefinition beanDefinition : beanDefinitions) {
@@ -58,7 +65,6 @@ public class BeansFactory {
         } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException e) {
             e.printStackTrace();
         }
-
         if (bean != null && beanDefinition.isSingleton()) {
             singletonObjects.putIfAbsent(beanDefinition.getId(), bean);
             return singletonObjects.get(beanDefinition.getId());
@@ -66,11 +72,17 @@ public class BeansFactory {
         return bean;
     }
 
+    @Override
     public Object getBean(String beanId) {
         BeanDefinition beanDefinition = beanDefinitions.get(beanId);
         if (beanDefinition == null) {
             throw new RuntimeException("bean is not defined，" + beanId);
         }
         return createBean(beanDefinition);
+    }
+
+    @Override
+    public List<String> getBeanDefinitionNames() {
+        return beanDefinitionsName;
     }
 }

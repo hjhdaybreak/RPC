@@ -1,27 +1,20 @@
 package com.bee.rpc.utils;
 
 
-
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
+
+/**
+ * 因为有限流算法,并且每个任务执行时间较短的情况,故用的 CachedThreadPool,
+ */
 
 public class ThreadPoolFactory {
     /**
      * 线程池参数
      */
-    private static final int CORE_POOL_SIZE = 10;
-    private static final int MAXIMUM_POOL_SIZE_SIZE = 100;
-    private static final int KEEP_ALIVE_TIME = 1;
-    private static final int BLOCKING_QUEUE_CAPACITY = 100;
-
     private ThreadPoolFactory() {
+
     }
 
     public static ExecutorService createDefaultThreadPool(String threadNamePrefix) {
@@ -29,11 +22,8 @@ public class ThreadPoolFactory {
     }
 
     public static ExecutorService createDefaultThreadPool(String threadNamePrefix, Boolean daemon) {
-        // 使用有界队列
-        BlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<>(BLOCKING_QUEUE_CAPACITY);
         ThreadFactory threadFactory = createThreadFactory(threadNamePrefix, daemon);
-        return new ThreadPoolExecutor(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE_SIZE, KEEP_ALIVE_TIME, TimeUnit.MINUTES, workQueue, threadFactory);
-
+        return Executors.newCachedThreadPool(threadFactory);
     }
 
     /**

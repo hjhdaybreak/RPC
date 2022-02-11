@@ -4,6 +4,10 @@ import lombok.Data;
 
 import java.util.List;
 
+
+/**
+ * 配置文件中bean节点的映射对象
+ */
 @Data
 public class BeanDefinition {
     private String id;

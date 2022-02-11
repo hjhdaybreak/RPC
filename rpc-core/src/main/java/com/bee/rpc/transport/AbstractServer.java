@@ -1,13 +1,14 @@
 package com.bee.rpc.transport;
 
 
-import com.bee.rpc.ioc.IocStarter;
+import com.bee.rpc.ioc.IocConfiguration;
 import com.bee.rpc.ioc.context.ApplicationContext;
+import com.bee.rpc.ioc.factory.DefaultBeanFactory;
 import com.bee.rpc.provider.ServiceProvider;
 import com.bee.rpc.registry.ServiceRegistry;
 
 import java.net.InetSocketAddress;
-import java.util.Set;
+import java.util.List;
 
 public abstract class AbstractServer implements RpcServer {
     protected ServiceRegistry serviceRegistry;
@@ -15,12 +16,14 @@ public abstract class AbstractServer implements RpcServer {
     protected String host;
     protected int port;
 
+
     @SuppressWarnings("unchecked")
-    protected void prepareIOC() {
-        ApplicationContext context = IocStarter.refresh();
-        Set<String> beanNames = (Set<String>) context.getBeanNames();
-        for (String beanName : beanNames) {
-            Object service = context.getBean(beanName);
+    protected void runIoc() {
+        ApplicationContext context = IocConfiguration.start();
+        DefaultBeanFactory defaultBeanFactory = context.getBeanFactory();
+        List<String> beanDefinitionNames = defaultBeanFactory.getBeanDefinitionNames();
+        for (String beanDefinitionName : beanDefinitionNames) {
+            Object service = defaultBeanFactory.getBean(beanDefinitionName);
             publishService(service, service.getClass().getInterfaces()[0]);
         }
     }

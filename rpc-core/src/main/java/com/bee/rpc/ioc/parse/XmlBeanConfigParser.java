@@ -13,13 +13,17 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+
+/**
+ * 配置文件内容解析成 BeanDefinition 集合对象
+ */
 public class XmlBeanConfigParser implements BeanConfigParser {
 
     @Override
     @SuppressWarnings("unchecked")
     public List<BeanDefinition> parse(InputStream inputStream) {
         List<BeanDefinition> beanDefinitions = new ArrayList<>();
-
+        //dom4j
         SAXReader saxReader = new SAXReader();
         Document document;
         try {
@@ -41,6 +45,8 @@ public class XmlBeanConfigParser implements BeanConfigParser {
                 for (Element childElement : childElements) {
                     BeanDefinition.ConstructorArg constructorArg = new BeanDefinition.ConstructorArg();
                     String ref = childElement.attributeValue("ref");
+
+
                     String typeClassName = childElement.attributeValue("type");
                     Class<?> typeClazz = null;
                     if (typeClassName != null) {
@@ -48,7 +54,6 @@ public class XmlBeanConfigParser implements BeanConfigParser {
                     }
                     //获取依赖的对象,可能没有
                     constructorArg.setRef(ref);
-
                     constructorArg.setType(typeClazz);
                     if (childElement.attributeValue("value") != null) {
                         //如果是int类型,需要将类型转换,转化为Integer类型
@@ -60,9 +65,11 @@ public class XmlBeanConfigParser implements BeanConfigParser {
                     }
                     constructorArgs.add(constructorArg);
                 }
+
                 if (element.attributeValue("scope") != null) {
                     beanDefinition.setScope(element.attributeValue("scope"));
                 }
+
                 beanDefinition.setId(id);
                 beanDefinition.setClassName(className);
                 beanDefinition.setConstructorArgs(constructorArgs);
@@ -81,10 +88,5 @@ public class XmlBeanConfigParser implements BeanConfigParser {
             }
         }
         return beanDefinitions;
-    }
-
-    @Override
-    public List<BeanDefinition> parser(String content) {
-        return null;
     }
 }

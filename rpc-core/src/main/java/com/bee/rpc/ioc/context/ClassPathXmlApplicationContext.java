@@ -1,10 +1,8 @@
 package com.bee.rpc.ioc.context;
 
 
-
-
 import com.bee.rpc.ioc.BeanDefinition;
-import com.bee.rpc.ioc.factory.BeansFactory;
+import com.bee.rpc.ioc.factory.DefaultBeanFactory;
 import com.bee.rpc.ioc.parse.BeanConfigParser;
 import com.bee.rpc.ioc.parse.XmlBeanConfigParser;
 
@@ -14,18 +12,32 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * 1.组装 beansFactory 和 beanConfigParser
+ * 2.串联执行流程,读取配置文件,通过beanConfigParser解析到 beanDefinitions
+ * 3.beansFactory 根据 beanDefinitions 加载对象
+ */
+
 public class ClassPathXmlApplicationContext implements ApplicationContext {
-    private BeansFactory beansFactory;
+
+    public DefaultBeanFactory getBeanFactory() {
+        return this.beanFactory;
+    }
+
+    private DefaultBeanFactory beanFactory;
     private BeanConfigParser beanConfigParser;
-    private Set<String> beanNames;
 
     public ClassPathXmlApplicationContext(String configLocation) {
-        this.beansFactory = new BeansFactory();
+        this.beanFactory = new DefaultBeanFactory();
         this.beanConfigParser = new XmlBeanConfigParser();
-        beanNames = new HashSet<>();
         loadBeanDefinitions(configLocation);
-
     }
+
+    /**
+     * 配置文件解析,并将配置信息读取转化到 BeanDefinition集合
+     *
+     * @param configLocation
+     */
 
     private void loadBeanDefinitions(String configLocation) {
         InputStream in = null;
@@ -35,12 +47,7 @@ public class ClassPathXmlApplicationContext implements ApplicationContext {
                 throw new RuntimeException("找不到配置文件:" + configLocation);
             }
             List<BeanDefinition> beanDefinitions = beanConfigParser.parse(in);
-
-            for (BeanDefinition beanDefinition : beanDefinitions) {
-                beanNames.add(beanDefinition.getId());
-            }
-
-            beansFactory.addBeanDefinitions(beanDefinitions);
+            beanFactory.addBeanDefinitions(beanDefinitions);
         } catch (RuntimeException e) {
             e.printStackTrace();
         } finally {
@@ -54,13 +61,4 @@ public class ClassPathXmlApplicationContext implements ApplicationContext {
         }
     }
 
-    @Override
-    public Object getBean(String beanId) {
-        return beansFactory.getBean(beanId);
-    }
-
-    @Override
-    public Set<String> getBeanNames() {
-        return beanNames;
-    }
 }

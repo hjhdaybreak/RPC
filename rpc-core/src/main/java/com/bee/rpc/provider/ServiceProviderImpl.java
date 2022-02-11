@@ -30,12 +30,11 @@ public class ServiceProviderImpl implements ServiceProvider {
         //接口具体实现类实现的接口
         if (interfaces.length == 0)
             throw new RpcException(RpcError.SERVICE_NOT_IMPLEMENT_ANY_INTERFACE);
+        if (interfaces.length > 1)
+            throw new RpcException(RpcError.SERVICE_IMPLEMENT_TO_MUCH_INTERFACE);
         //本地注册的是服务 保存形式是以 key为接口 value具体实现类
-        for (Class<?> i : interfaces) {
-            serviceMap.put(i.getCanonicalName(), service);
-        }
+        serviceMap.put(interfaces[0].getCanonicalName(), service);
         log.info("向接口: {} 注册服务: {}", interfaces, serviceName);
-
     }
 
     @Override

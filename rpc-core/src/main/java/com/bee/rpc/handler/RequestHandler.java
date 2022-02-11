@@ -27,6 +27,7 @@ public class RequestHandler {
         Object result = null;
         try {
             Object service = RequestHandler.serviceProvider.getServiceProvider(rpcRequest.getInterfaceName());
+
             result = invokeTargetMethod(rpcRequest, service);
             log.info("服务:{} 成功调用方法:{}", rpcRequest.getInterfaceName(), rpcRequest.getMethodName());
         } catch (IllegalAccessException | InvocationTargetException e) {
@@ -35,6 +36,14 @@ public class RequestHandler {
         return result;
     }
 
+    /**
+     *
+     * @param rpcRequest
+     * @param service 具体方法 
+     * @return
+     * @throws IllegalAccessException
+     * @throws InvocationTargetException
+     */
     private Object invokeTargetMethod(RpcRequest rpcRequest, Object service) throws IllegalAccessException, InvocationTargetException {
         Method method;
         try {

@@ -1,8 +1,7 @@
 package com.bee.rpc.ioc.context;
 
+import com.bee.rpc.ioc.factory.DefaultBeanFactory;
+
 public interface ApplicationContext {
-
-    Object getBean(String beanId);
-
-    Object getBeanNames();
+    DefaultBeanFactory getBeanFactory();
 }

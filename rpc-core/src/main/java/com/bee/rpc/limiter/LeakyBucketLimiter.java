@@ -3,8 +3,10 @@ package com.bee.rpc.limiter;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class LeakyBucketLimiter implements RateLimiter {
+
     //桶的容量
     private int capacity = 100;
+
     //桶中水剩余量
     private AtomicInteger water = new AtomicInteger(0);
 
@@ -21,7 +23,7 @@ public class LeakyBucketLimiter implements RateLimiter {
 
     @Override
     public boolean acquire() {
-        // 如果是空桶,就当前时间作为桶开是漏出的时间
+        // 如果桶是空的,就当前时间作为桶开是漏出的时间
         if (water.get() == 0) {
             leakTimeStamp = System.currentTimeMillis();
             water.getAndAdd(1);
@@ -37,7 +39,7 @@ public class LeakyBucketLimiter implements RateLimiter {
             water.addAndGet(1);
             return true;
         } else {
-            // 水满，拒绝加水
+            // 水满,拒绝加水
             return false;
         }
     }
